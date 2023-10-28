@@ -8,7 +8,7 @@ function App() {
   return (
     <div className="h-screen">
       <Home />
-      <Progress/>
+      {/* <Progress/> */}
       {/* <Summary /> */}
     </div>
   );

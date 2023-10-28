@@ -118,6 +118,15 @@ body {
     background-color: #0f0f0f69;
   }
 }
+.Home {
+  text-align: center;
+  padding: 20px;
+}
+
+.PaddingBottom{
+  padding:30px;
+}
+
 /* Progress.css */
 .Progress {
   text-align: center;
