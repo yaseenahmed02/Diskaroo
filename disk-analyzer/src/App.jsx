@@ -7,9 +7,9 @@ import "./styles.css";
 function App() {
   return (
     <div className="h-screen">
-      <Home />
+      {<Home />}
       {/* <Progress/> */}
-      {/* <Summary /> */}
+      {/*<Summary /> */}
     </div>
   );
 }

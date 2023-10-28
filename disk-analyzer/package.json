@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@blueprintjs/core": "^5.5.1",
+    "@canvasjs/react-charts": "^1.0.0",
     "@material-tailwind/react": "^2.1.4",
     "@mui/icons-material": "^5.14.15",
     "@mui/material": "^5.14.15",
@@ -27,6 +28,7 @@
     "sentiment": "^5.0.2",
     "styled-components": "^6.1.0",
     "tailwindcss": "^3.3.5",
+    "tauri": "^0.15.0",
     "tw-elements": "^1.0.0"
   },
   "devDependencies": {
