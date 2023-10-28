@@ -148,3 +148,17 @@ body {
   border-radius: 10px;
   transition: width 0.3s ease-in-out;
 }
+
+/*summary.css*/
+.Summary {
+  display: flex;
+  flex-direction: column;
+  align-items: left;
+}
+
+.ChartsContainer {
+  display: flexbox;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-top: 20px;
+}
