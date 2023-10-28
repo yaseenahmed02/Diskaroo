@@ -118,3 +118,33 @@ body {
     background-color: #0f0f0f69;
   }
 }
+.Home {
+  text-align: center;
+  padding: 20px;
+}
+
+.PaddingBottom{
+  padding:30px;
+}
+
+/* Progress.css */
+.Progress {
+  text-align: center;
+  padding: 20px;
+}
+
+.progress-bar {
+  width: 100%;
+  background-color: #ccc;
+  height: 20px;
+  border-radius: 10px;
+  margin: 20px 0;
+  position: relative;
+}
+
+.progress-indicator {
+  height: 100%;
+  background-color: #007bff; /* Change this color to your desired progress color */
+  border-radius: 10px;
+  transition: width 0.3s ease-in-out;
+}
