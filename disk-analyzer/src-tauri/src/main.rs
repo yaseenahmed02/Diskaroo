@@ -1,59 +1,100 @@
-// #[derive(serde::Serialize)]
-// struct DiskData {
-//     total_space: u64, // in bytes
-//     used_space: u64,  // in bytes
-//     free_space: u64,  // in bytes
-//     disk_name: String,
-//     file_system: String,
-// }
-
-// #[tauri::command]
-// fn analyze_disk() -> Result<String, String> {
-//     println!("analyze_disk() was called!");
-
-//     let data = DiskData {
-//         total_space: 500_000_000_000, // 500 GB
-//         used_space: 300_000_000_000,  // 300 GB
-//         free_space: 200_000_000_000,  // 200 GB
-//         disk_name: "C:".to_string(),
-//         file_system: "NTFS".to_string(),
-//     };
-
-//     // Serialize the data to JSON
-//     match serde_json::to_string(&data) {
-//         Ok(json) => {
-//             // Log the serialized JSON string and its type
-//             // println!("Serialized JSON: {}", &json);
-//             // println!("Type of serialized JSON: {:?}", &json);
-//             Ok(json)
-//         }
-//         Err(e) => {
-//             println!("Failed to serialize disk data: {}", e);
-//             Err(format!("Failed to serialize disk data: {}", e))
-//         }
-//     }
-// }
-
-// #[tauri::command]
-// fn analyze_disk(invoke_message: String) {
-//     println!(
-//         "I was invoked from JS, with this message: {}",
-//         invoke_message
-//     );
-// }
-
-// #[tauri::command]
-// fn analyze_disk(invoke_message: String) -> Result<i32, String> {
-//     println!(
-//         "I was invoked from JS, with this message: {}",
-//         invoke_message
-//     );
-
-//     // You can return an integer here, for example:
-//     Ok(42) // This returns the integer 42
-// }
-
+use chrono::prelude::*;
+use serde::Serialize;
+use std::collections::HashMap;
+use std::fs;
+use std::path::Path;
+use std::time::SystemTime;
 use sysinfo::{DiskExt, DiskType, System, SystemExt};
+
+use chrono::{DateTime, Utc};
+
+#[derive(serde::Serialize)]
+struct DirectoryData {
+    num_files: usize,
+    num_subdirectories: usize,
+    total_size: u64,
+    largest_files: Vec<FileData>,
+    oldest_file: FileData,
+    newest_file: FileData,
+    file_type_breakdown: HashMap<String, usize>,
+}
+
+#[derive(Debug, Clone, serde::Serialize, Default)]
+struct FileData {
+    path: String,
+    size: u64,
+    last_modified: String,
+}
+
+#[derive(Serialize)]
+struct DirectoryAnalysis {
+    largest_files: Vec<FileData>,
+    largest_file: FileData,
+    smallest_file: FileData,
+}
+
+#[tauri::command]
+fn analyze_directory(dir_path: String) -> Result<String, String> {
+    println!("analyze_directory() was called!");
+    let path = Path::new(&dir_path);
+
+    let mut files_vec: Vec<FileData> = Vec::new();
+
+    if !path.is_dir() {
+        return Err("Provided path is not a directory.".to_string());
+    }
+
+    for entry in fs::read_dir(path).map_err(|e| e.to_string())? {
+        let entry = entry.map_err(|e| e.to_string())?;
+        let last_modified: SystemTime = entry
+            .metadata()
+            .map_err(|e| e.to_string())?
+            .modified()
+            .map_err(|e| e.to_string())?;
+        let datetime: chrono::DateTime<chrono::Utc> = last_modified.into();
+        let size = get_directory_size(&entry.path());
+
+        files_vec.push(FileData {
+            path: entry.path().display().to_string(),
+            size: size,
+            last_modified: datetime.to_rfc3339(),
+        });
+    }
+
+    files_vec.sort_by(|a, b| b.size.cmp(&a.size));
+
+    // Get the largest 10 files
+    let largest_files: Vec<FileData> = files_vec.iter().take(10).cloned().collect();
+
+    let largest_file = files_vec.first().cloned().unwrap_or_default();
+    let smallest_file = files_vec.last().cloned().unwrap_or_default();
+
+    let analysis = DirectoryAnalysis {
+        largest_files,
+        largest_file,
+        smallest_file,
+    };
+
+    match serde_json::to_string(&analysis) {
+        Ok(json) => Ok(json),
+        Err(e) => {
+            println!("Failed to serialize directory analysis: {}", e);
+            Err(format!("Failed to serialize directory analysis: {}", e))
+        }
+    }
+}
+
+fn get_directory_size(path: &Path) -> u64 {
+    if path.is_file() {
+        return path.metadata().unwrap().len();
+    }
+    let mut size = 0;
+    for entry in fs::read_dir(path).unwrap() {
+        let entry_path = entry.unwrap().path();
+        size += get_directory_size(&entry_path);
+    }
+    size
+}
 
 #[derive(serde::Serialize)]
 struct DiskData {
@@ -105,15 +146,19 @@ fn analyze_disk() -> Result<String, String> {
 }
 
 fn main() {
-    // For testing:
-    let result = analyze_disk().unwrap();
-    println!("Result: {}", result);
+    // Test analyze_disk function: <-- NOTE: This function is missing from your code!
+    // let result_disk = analyze_disk().unwrap();
+    // println!("Disk Result: {}", result_disk);
 
-    // let s = System::new_all();
-    // println!("{} kB", s.get_available_memory());
+    // Test analyze_directory function:
+    // let sample_directory_path = "/Users/yaseenahmed/Workspace/AUC/Academics/Fall 2023/OS";
+    // match analyze_directory(sample_directory_path.to_string()) {
+    //     Ok(result_dir) => println!("Directory Result: {}", result_dir),
+    //     Err(e) => println!("Error analyzing directory: {}", e),
+    // }
 
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![analyze_disk])
+        .invoke_handler(tauri::generate_handler![analyze_directory, analyze_disk]) // <-- NOTE: analyze_disk is removed as it's not provided in the code.
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
