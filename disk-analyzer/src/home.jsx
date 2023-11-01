@@ -1,11 +1,46 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { dialog } from "@tauri-apps/api";
 
 function HomePage() {
   const navigate = useNavigate();
+  const [selectedDir, setSelectedDir] = useState("");
+
+  // const handleStartScan = () => {
+  //   if (selectedDir) {
+  //     navigate("./progress");
+
+  //     // Let's simulate the scanning process with a timeout
+  //     setTimeout(() => {
+  //       console.log("Navigating with dirPath:", selectedDir);
+  //       navigate("/summary", { state: { dirPath: selectedDir } });
+  //     }, 100000);
+  //   } else {
+  //     console.error("Please select a directory before starting the scan.");
+  //   }
+  // };
 
   const handleStartScan = () => {
-    navigate("./progress");
+    if (selectedDir) {
+      console.log("Navigating with dirPath:", selectedDir);
+      navigate("/summary", { state: { dirPath: selectedDir } });
+    } else {
+      console.error("Please select a directory before starting the scan.");
+    }
+  };
+
+  const handleDirectoryChange = async () => {
+    try {
+      const path = await dialog.open({ directory: true });
+      if (path) {
+        console.log("Directory chosen in HomePage:", path);
+        setSelectedDir(path);
+      } else {
+        console.error("No directory selected.");
+      }
+    } catch (error) {
+      console.error("Error selecting directory:", error);
+    }
   };
 
   return (
@@ -21,8 +56,8 @@ function HomePage() {
             </div>
             <div className="flex flex-col items-center space-y-6">
               <button
-                onClick={handleStartScan} // 4. Use the new function
-                className=" w-full bg-blue-600 text-white py-3 px-6 rounded-lg shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-transform transform hover:scale-105"
+                onClick={handleStartScan}
+                className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-transform transform hover:scale-105"
               >
                 Start Scan
               </button>
@@ -30,12 +65,17 @@ function HomePage() {
                 <label className="block text-gray-600 mb-2 text-center">
                   Select a directory:
                 </label>
-                <input
-                  type="file"
-                  directory=""
-                  webkitdirectory=""
+                <button
+                  onClick={handleDirectoryChange}
                   className="w-full p-2 border-2 rounded-lg focus:border-blue-500"
-                />
+                >
+                  Choose Directory
+                </button>
+                {selectedDir && (
+                  <div className="mt-4 text-gray-700">
+                    Selected Directory: {selectedDir}
+                  </div>
+                )}
               </div>
             </div>
           </div>
