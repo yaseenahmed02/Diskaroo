@@ -26,6 +26,10 @@ function Summary() {
     setShowBarGraph(false);
   }
 
+  function bytesToGB(bytes) {
+    return (bytes / 1_073_741_824).toFixed(2); // This will give you a result with two decimal places
+  }
+
   return (
     <div className="Summary">
       <header className="Summary-header mb-4">
@@ -44,9 +48,12 @@ function Summary() {
               <h2>Disk Analysis</h2>
               <p>Disk Name: {diskData.disk_name}</p>
               <p>File System: {diskData.file_system}</p>
-              <p>Total Space: {diskData.total_space} bytes</p>
-              <p>Used Space: {diskData.used_space} bytes</p>
-              <p>Free Space: {diskData.free_space} bytes</p>
+              <p>Disk Type: {diskData.disk_type}</p>
+              <p>Mount Point: {diskData.mount_point}</p>
+              <p>Total Space: {bytesToGB(diskData.total_space)} GB</p>
+              <p>Used Space: {bytesToGB(diskData.used_space)} GB</p>
+              <p>Free Space: {bytesToGB(diskData.free_space)} GB</p>
+              <p>Percentage Used: {diskData.percentage_used.toFixed(2)}%</p>
               <p>Biggest 10 files in the system:</p>
               <div>
                 <button
