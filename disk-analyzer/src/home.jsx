@@ -20,10 +20,19 @@ function HomePage() {
   //   }
   // };
 
+  // const handleStartScan = () => {
+  //   if (selectedDir) {
+  //     console.log("Navigating with dirPath:", selectedDir);
+  //     navigate("/summary", { state: { dirPath: selectedDir } });
+  //   } else {
+  //     console.error("Please select a directory before starting the scan.");
+  //   }
+  // };
+
   const handleStartScan = () => {
     if (selectedDir) {
       console.log("Navigating with dirPath:", selectedDir);
-      navigate("/summary", { state: { dirPath: selectedDir } });
+      navigate("/progress", { state: { dirPath: selectedDir } });
     } else {
       console.error("Please select a directory before starting the scan.");
     }

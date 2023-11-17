@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 function Progress() {
   const [progress, setProgress] = useState(0);
   const [message, setMessage] = useState("Initializing...");
-  const navigate = useNavigate(); // Hook to programmatically navigate
+  const navigate = useNavigate();
+  const location = useLocation(); // Add this to receive the directory path
+  const dirPath = location.state?.dirPath; // Extract the directory path
 
   useEffect(() => {
     if (progress < 100) {
@@ -27,8 +29,8 @@ function Progress() {
             break;
           case 100:
             setMessage("Scan complete!");
-            clearInterval(interval); // Clear the interval when scan is complete
-            navigate("/summary"); // Navigate to the summary page
+            clearInterval(interval);
+            navigate("/summary", { state: { dirPath } }); // Pass the directory path to Summary
             break;
           default:
             break;
@@ -39,7 +41,7 @@ function Progress() {
         clearInterval(interval);
       };
     }
-  }, [progress, navigate]);
+  }, [progress, navigate, dirPath]); // Include dirPath in the dependency array
 
   return (
     <div className="Progress">
