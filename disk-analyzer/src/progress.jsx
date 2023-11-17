@@ -9,7 +9,7 @@ function Progress() {
   const dirPath = location.state?.dirPath; // Extract the directory path
 
   useEffect(() => {
-    if (progress < 100) {
+    if (progress < 50) {
       const interval = setInterval(() => {
         const newProgress = progress + 10;
         setProgress(newProgress);
@@ -18,16 +18,16 @@ function Progress() {
           case 10:
             setMessage("Accessing memory...");
             break;
-          case 30:
+          case 20:
             setMessage("Scanning disk...");
             break;
-          case 60:
+          case 30:
             setMessage("Analyzing data blocks...");
             break;
-          case 90:
+          case 40:
             setMessage("Finalizing scan...");
             break;
-          case 100:
+          case 50:
             setMessage("Scan complete!");
             clearInterval(interval);
             navigate("/summary", { state: { dirPath } }); // Pass the directory path to Summary
@@ -35,7 +35,7 @@ function Progress() {
           default:
             break;
         }
-      }, 1000);
+      }, 200);
 
       return () => {
         clearInterval(interval);

@@ -3,19 +3,26 @@ import { invoke } from "@tauri-apps/api/tauri";
 import PieChart from "./PieChart";
 import BarChart from "./BarChart";
 import { useLocation } from "react-router-dom";
+import GraphsDisplay from "./GraphsDisplay";
+import { useNavigate } from "react-router-dom";
 
 function Summary() {
   const [diskData, setDiskData] = useState(null);
   const [showBarGraph, setShowBarGraph] = useState(false);
+  const [showPieChart, setShowPieChart] = useState(false); // State for pie chart visibility
   const [dirData, setDirData] = useState(null);
+  const [activeTab, setActiveTab] = useState(null); // 'disk' or 'directory'
 
   const location = useLocation();
+  const navigate = useNavigate();
   const dirPath = location.state?.dirPath;
 
-  function handleAnalyze(event) {
-    event.preventDefault();
+  useEffect(() => {
+    // Automatically trigger disk analysis on component mount
+    handleAnalyze();
+  }, []);
 
-    // Call the analyze_disk command from the backend
+  function handleAnalyze() {
     invoke("analyze_disk")
       .then((responseString) => {
         const parsedData = JSON.parse(responseString);
@@ -26,20 +33,19 @@ function Summary() {
       });
   }
 
-  function handleDirectoryAnalyze(event) {
-    console.log("handleDirectoryAnalyze was called");
-    event.preventDefault();
-
-    // Call the analyze_directory command from the backend
+  function handleDirectoryAnalyze() {
     invoke("analyze_directory", { dirPath: dirPath })
       .then((responseString) => {
         const parsedData = JSON.parse(responseString);
-        console.log(parsedData);
         setDirData(parsedData);
       })
       .catch((error) => {
         console.error("Error calling analyze_directory:", error);
       });
+  }
+
+  function navigateToGraphs() {
+    navigate("/GraphsDisplay", { state: { diskData, dirData } });
   }
 
   function handleClear() {
@@ -48,103 +54,130 @@ function Summary() {
   }
 
   function bytesToGB(bytes) {
-    return (bytes / 1_073_741_824).toFixed(2); // This will give you a result with two decimal places
+    const ONE_GB = 1_073_741_824; // Bytes in one GB
+    if (bytes < ONE_GB) {
+      // If size is less than 1 GB, show in MB with 2 decimal places
+      return (bytes / 1_048_576).toFixed(2) + " MB";
+    } else {
+      // If size is 1 GB or more, show in GB with 3 decimal places
+      return (bytes / ONE_GB).toFixed(3) + " GB";
+    }
   }
 
   return (
-    <div className="Summary">
-      <header className="Summary-header mb-4">
-        <h1>Disk Analyzer</h1>
+    <div className="container mx-auto p-4">
+      <header className="my-6">
+        <h1 className="text-4xl font-bold text-left">Disk Analyzer</h1>
+        <div className="flex justify-start space-x-4 my-4">
+          <button
+            className={`px-4 py-2 rounded ${
+              activeTab === "disk" ? "bg-blue-500 text-white" : "bg-gray-200"
+            }`}
+            onClick={() => {
+              setActiveTab("disk");
+              if (!diskData) {
+                handleAnalyze();
+              }
+            }}
+          >
+            Disk Analysis
+          </button>
+          <button
+            className={`px-4 py-2 rounded ${
+              activeTab === "directory"
+                ? "bg-blue-500 text-white"
+                : "bg-gray-200"
+            }`}
+            onClick={() => {
+              setActiveTab("directory");
+              handleDirectoryAnalyze();
+            }}
+          >
+            Directory Analysis
+          </button>
+        </div>
       </header>
-      <main className="flex flex-col items-start">
-        <button
-          onClick={handleAnalyze}
-          className="mb-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-        >
-          Click to View Results
-        </button>
-
-        <button
-          onClick={handleDirectoryAnalyze} // Assuming you've defined this function
-          className="mb-4 bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded"
-        >
-          View Directory Data
-        </button>
-
-        {diskData && (
-          <div className="flex">
-            <div className="mr-8">
-              <h2>Disk Analysis</h2>
-              <p>Disk Name: {diskData.disk_name}</p>
-              <p>File System: {diskData.file_system}</p>
-              <p>Disk Type: {diskData.disk_type}</p>
-              <p>Mount Point: {diskData.mount_point}</p>
-              <p>Total Space: {bytesToGB(diskData.total_space)} GB</p>
-              <p>Used Space: {bytesToGB(diskData.used_space)} GB</p>
-              <p>Free Space: {bytesToGB(diskData.free_space)} GB</p>
-              <p>Percentage Used: {diskData.percentage_used.toFixed(2)}%</p>
-              <p>Biggest 10 files in the system:</p>
-              <div>
-                <button
-                  onClick={handleClear}
-                  className="mr-2 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-                >
-                  Clear
-                </button>
-                <button
-                  onClick={() => setShowBarGraph(!showBarGraph)}
-                  className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
-                >
-                  {showBarGraph ? "Hide" : "Show"} Bar Graph
-                </button>
-              </div>
+      <main>
+        {/* Disk Analysis Tab */}
+        {activeTab === "disk" && diskData && (
+          <div
+            className="card bg-white shadow-lg p-4 rounded"
+            style={{ textAlign: "left" }}
+          >
+            <h2>Disk Analysis</h2>
+            <p>Disk Name: {diskData.disk_name}</p>
+            <p>File System: {diskData.file_system}</p>
+            <p>Disk Type: {diskData.disk_type}</p>
+            <p>Mount Point: {diskData.mount_point}</p>
+            <p>Total Space: {bytesToGB(diskData.total_space)}</p>
+            <p>Used Space: {bytesToGB(diskData.used_space)}</p>
+            <p>Free Space: {bytesToGB(diskData.free_space)}</p>
+            <p>Percentage Used: {diskData.percentage_used.toFixed(2)}%</p>
+            <div className="actions flex space-x-2 mt-4">
+              <button
+                onClick={handleClear}
+                className="action-button bg-red-500 text-white px-4 py-2 rounded"
+              >
+                Clear
+              </button>
+              <button
+                onClick={() => setShowBarGraph(!showBarGraph)}
+                className="action-button bg-green-500 text-white px-4 py-2 rounded"
+              >
+                {showBarGraph ? "Hide" : "Show"} Bar Graph
+              </button>
+              <button
+                onClick={() => setShowPieChart(!showPieChart)}
+                className="action-button bg-blue-500 text-white px-4 py-2 rounded"
+              >
+                {showPieChart ? "Hide" : "Show"} Pie Chart
+              </button>
             </div>
-            <div>
-              <PieChart />
-            </div>
+            {showBarGraph && <BarChart />}
+            {showPieChart && <PieChart data={diskData} />}
           </div>
         )}
 
-        {dirData && (
-          <div className="flex mt-8">
-            <div className="mr-8">
-              <h2>Directory Analysis</h2>
-              <h3>Largest 10 Files:</h3>
-              <ul>
-                {dirData.largest_files.map((file, index) => (
-                  <li key={index}>
-                    Path: {file.path}
-                    <br />
-                    Size: {bytesToGB(file.size)} GB
-                    <br />
-                    Last Modified:{" "}
-                    {new Date(file.last_modified).toLocaleString()}
-                  </li>
-                ))}
-              </ul>
-              <h3>Largest File:</h3>
-              <p>
-                Path: {dirData.largest_file.path}
-                <br />
-                Size: {bytesToGB(dirData.largest_file.size)} GB
-                <br />
-                Last Modified:{" "}
-                {new Date(dirData.largest_file.last_modified).toLocaleString()}
-              </p>
-              <h3>Smallest File:</h3>
-              <p>
-                Path: {dirData.smallest_file.path}
-                <br />
-                Size: {bytesToGB(dirData.smallest_file.size)} GB
-                <br />
-                Last Modified:{" "}
-                {new Date(dirData.smallest_file.last_modified).toLocaleString()}
-              </p>
-            </div>
+        {/* Directory Analysis Tab */}
+        {activeTab === "directory" && dirData && (
+          <div
+            className="card bg-white shadow-lg p-4 rounded"
+            style={{ textAlign: "left" }}
+          >
+            <h2>Directory Analysis</h2>
+            <h3>Largest 10 Files:</h3>
+            <ul>
+              {dirData.largest_files.map((file, index) => (
+                <li key={index}>
+                  Path: {file.path}
+                  <br />
+                  Size: {bytesToGB(file.size)}
+                  <br />
+                  Last Modified: {new Date(file.last_modified).toLocaleString()}
+                </li>
+              ))}
+            </ul>
+            <h3>Largest File:</h3>
+            <p>
+              Path: {dirData.largest_file.path}
+              <br />
+              Size: {bytesToGB(dirData.largest_file.size)}
+              <br />
+              Last Modified:{" "}
+              {new Date(dirData.largest_file.last_modified).toLocaleString()}
+            </p>
+            <h3>Smallest File:</h3>
+            <p>
+              Path: {dirData.smallest_file.path}
+              <br />
+              Size: {bytesToGB(dirData.smallest_file.size)}
+              <br />
+              Last Modified:{" "}
+              {new Date(dirData.smallest_file.last_modified).toLocaleString()}
+            </p>
           </div>
         )}
       </main>
-      <div className="ChartsContainer mt-8">{showBarGraph && <BarChart />}</div>
     </div>
   );
 }
