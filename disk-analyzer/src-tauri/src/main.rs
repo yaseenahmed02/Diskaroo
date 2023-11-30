@@ -145,6 +145,54 @@ fn analyze_disk() -> Result<String, String> {
     }
 }
 
+#[derive(Serialize)] // Add derive attribute for Serialize and Deserialize
+struct DirectoryNode {
+    name: String,
+    #[serde(rename = "type")] // "type" is a reserved keyword in Rust, so renaming it
+    node_type: String,
+    children: Option<Vec<DirectoryNode>>,
+}
+
+fn traverse_directory(dir_path: &str) -> DirectoryNode {
+    let mut node_children: Vec<DirectoryNode> = Vec::new();
+
+    if let Ok(entries) = fs::read_dir(dir_path) {
+        for entry in entries {
+            if let Ok(entry) = entry {
+                let file_name = entry.file_name();
+                let file_name_str = file_name.to_string_lossy().to_string();
+
+                let path = entry.path();
+                if path.is_dir() {
+                    let path_str = path.to_string_lossy().to_string();
+                    let child_node = traverse_directory(&path_str);
+                    node_children.push(child_node);
+                } else {
+                    node_children.push(DirectoryNode {
+                        name: file_name_str,
+                        node_type: "file".to_string(),
+                        children: None,
+                    });
+                }
+            }
+        }
+    }
+
+    DirectoryNode {
+        name: dir_path.to_string(),
+        node_type: "folder".to_string(),
+        children: Some(node_children),
+    }
+}
+
+#[tauri::command]
+fn get_directory_data(dir_path: String) -> Result<String, String> {
+    println!("get_directory_data() was called!");
+    let directory_tree = traverse_directory(&dir_path);
+    let json_data = serde_json::to_string(&directory_tree).map_err(|e| e.to_string())?;
+    Ok(json_data)
+}
+
 fn main() {
     // Test analyze_disk function: <-- NOTE: This function is missing from your code!
     // let result_disk = analyze_disk().unwrap();
@@ -158,7 +206,7 @@ fn main() {
     // }
 
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![analyze_directory, analyze_disk]) // <-- NOTE: analyze_disk is removed as it's not provided in the code.
+        .invoke_handler(tauri::generate_handler![analyze_directory, analyze_disk, get_directory_data]) // <-- NOTE: analyze_disk is removed as it's not provided in the code.
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
