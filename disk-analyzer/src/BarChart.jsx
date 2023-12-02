@@ -13,6 +13,22 @@ function BarChart() {
     { y: 3.76, label: "Applications" }
   ];
 
+  const handleExport = async () => {
+    try {
+      const path = await dialog.open({ directory: true });
+      if (path) {
+        console.log("Export Directory chosen:", path);
+        exportBarGraph(path);
+      } else {
+        console.error("No export directory selected.");
+      }
+    } catch (error) {
+      console.error("Error selecting export directory:", error);
+    }
+  };
+  
+
+
   const options = {
     animationEnabled: true,
     theme: "light2",
