@@ -115,8 +115,8 @@ function Summary() {
 
   
 
-  function navigateToGraphs() {
-    navigate("/GraphsDisplay", { state: { diskData, dirData } });
+  function navigateToHome() {
+    navigate("/");
   }
 
   function handleClear() {
@@ -200,6 +200,15 @@ function Summary() {
     <header className="my-6">
       <h1 className="text-4xl font-bold text-left">Disk Analyzer</h1>
       <div className="flex justify-start space-x-4 my-4">
+        {/*back button */}
+        <button
+          className={`px-4 py-2 rounded ${
+          activeTab === "disk" ? "bg-blue-500 text-white" : "bg-gray-200"
+          }`}
+          onClick={() => {
+            navigateToHome();
+          }}
+        >Back</button>
         <button
           className={`px-4 py-2 rounded ${
           activeTab === "disk" ? "bg-blue-500 text-white" : "bg-gray-200"
