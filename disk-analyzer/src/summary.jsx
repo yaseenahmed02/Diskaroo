@@ -18,13 +18,13 @@ const TreeNode = ({ node }) => {
     setCollapsed(!collapsed);
   };
 
-  const icon = node.node_type === 'folder' ? '📁' : '📄';
+  const icon = node.type === 'folder' ? '📁' : '📄';
   const name = node.name.split('/').pop();
 
   return (
     <div key={node.name}>
       <div onClick={toggleCollapse}>
-        {collapsed ? '➡️' : '⬇️'} {`${icon} ${name}`}
+        {node.type === 'folder' ? collapsed ? '➡️' : '⬇️' : ''} {`${icon} ${name}`}
       </div>
       {!collapsed && node.children && (
         <div style={{ marginLeft: '1rem' }}>
