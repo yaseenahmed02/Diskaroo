@@ -39,61 +39,23 @@ const TreeNode = ({ node }) => {
 
 
 function Summary() {
-  const [diskData, setDiskData] = useState(null);
   const [showBarGraph, setShowBarGraph] = useState(false);
   const [showPieChart, setShowPieChart] = useState(false); // State for pie chart visibility
-  const [dirData, setDirData] = useState(null);
   const [activeTab, setActiveTab] = useState(null); // 'disk' or 'directory'
 
   const location = useLocation();
   const navigate = useNavigate();
   const dirPath = location.state?.dirPath;
-  const [showDirectoryTree, setShowDirectoryTree] = useState(false); // tree
-  const [directoryData, setDirectoryData] = useState(null);
+  const directoryData = location.state?.directoryData;
+  const dirData = location.state?.dirData;
+  const diskData = location.state?.diskData;
   const [exportDir, setExportDir] = useState("");
   useEffect(() => {
     // Automatically trigger disk analysis on component mount
-    handleAnalyze();
+    setActiveTab("disk");
   }, []);
 
 
-  function handleAnalyze() {
-    invoke("analyze_disk")
-      .then((responseString) => {
-        const parsedData = JSON.parse(responseString);
-        setDiskData(parsedData);
-      })
-      .catch((error) => {
-        console.error("Error calling analyze_disk:", error);
-      });
-  }
-
-  function handleDirectoryAnalyze() {
-    invoke("analyze_directory", { dirPath: dirPath })
-      .then((responseString) => {
-        const parsedData = JSON.parse(responseString);
-        setDirData(parsedData);
-      })
-      .catch((error) => {
-        console.error("Error calling analyze_directory:", error);
-      });
-  }
-
-  const handleShowTree = () => {
-    invoke("get_directory_data", { dirPath: dirPath })
-      .then((responseString) => {
-        if (responseString === null) {
-          console.log("NULL");
-        }
-        const parsedData = JSON.parse(responseString);
-        setDirectoryData(parsedData);
-        console.log(parsedData);
-      })
-      .catch((error) => {
-        console.error("Error calling get_directory_data:", error);
-      });
-  };
-  
 
   const renderTree = (node) => {
     if (!node) return null;
@@ -203,7 +165,7 @@ function Summary() {
         {/*back button */}
         <button
           className={`px-4 py-2 rounded ${
-          activeTab === "disk" ? "bg-blue-500 text-white" : "bg-gray-200"
+            activeTab === "disk" ? "bg-blue-500 text-white" : "bg-gray-200"
           }`}
           onClick={() => {
             navigateToHome();
@@ -211,13 +173,10 @@ function Summary() {
         >Back</button>
         <button
           className={`px-4 py-2 rounded ${
-          activeTab === "disk" ? "bg-blue-500 text-white" : "bg-gray-200"
+            activeTab === "disk" ? "bg-blue-500 text-white" : "bg-gray-200"
           }`}
           onClick={() => {
             setActiveTab("disk");
-            if (!diskData) {
-              handleAnalyze();
-            }
           }}
         >
           Disk Analysis
@@ -230,7 +189,6 @@ function Summary() {
           }`}
           onClick={() => {
             setActiveTab("directory");
-            handleDirectoryAnalyze();
           }}
         >
           Directory Analysis
@@ -244,7 +202,6 @@ function Summary() {
           }`}
           onClick={() => {
             setActiveTab("directoryTree");
-            handleShowTree();
           }}
         >
           Directory Tree

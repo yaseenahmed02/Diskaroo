@@ -89,9 +89,25 @@ fn get_directory_size(path: &Path) -> u64 {
         return path.metadata().unwrap().len();
     }
     let mut size = 0;
-    for entry in fs::read_dir(path).unwrap() {
-        let entry_path = entry.unwrap().path();
-        size += get_directory_size(&entry_path);
+    match fs::read_dir(path) {
+        Ok(entries) => {
+            for entry in entries {
+                match entry {
+                    Ok(dir_entry) => {
+                        let entry_path = dir_entry.path();
+                        size += get_directory_size(&entry_path);
+                    }
+                    Err(e) => {
+                        println!("Error accessing entry: {:?}", e);
+                        // Handle the error as needed, such as logging or further error handling.
+                    }
+                }
+            }
+        }
+        Err(e) => {
+            println!("Error reading directory: {:?}", e);
+            // Handle the error as needed, such as logging or further error handling.
+        }
     }
     size
 }
