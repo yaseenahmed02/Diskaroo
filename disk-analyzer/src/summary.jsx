@@ -50,10 +50,14 @@ function Summary() {
   const dirData = location.state?.dirData;
   const diskData = location.state?.diskData;
   const [exportDir, setExportDir] = useState("");
+
+  const [showTotalSpacePieChart, setShowTotalSpacePieChart] = useState(false);
+const [showUsedSpacePieChart, setShowUsedSpacePieChart] = useState(false);
   useEffect(() => {
     // Automatically trigger disk analysis on component mount
     setActiveTab("disk");
   }, []);
+
 
 
 
@@ -226,17 +230,52 @@ function Summary() {
             <p>Free Space: {bytesToGB(diskData.free_space)}</p>
             <p>Percentage Used: {diskData.percentage_used.toFixed(2)}%</p>
             <div className="actions flex space-x-2 mt-4">
-              <button
-                onClick={handleClear}
-                className="action-button bg-red-500 text-white px-4 py-2 rounded"
-              >
-                Clear
-              </button>
+            <button
+  onClick={() => setShowTotalSpacePieChart(!showTotalSpacePieChart)}
+  className="action-button bg-blue-500 text-white px-4 py-2 rounded"
+>
+  {showTotalSpacePieChart ? "Hide" : "Show"} Total Space Pie Chart
+</button>
+
+<button
+  onClick={() => setShowUsedSpacePieChart(!showUsedSpacePieChart)}
+  className="action-button bg-green-500 text-white px-4 py-2 rounded"
+>
+  {showUsedSpacePieChart ? "Hide" : "Show"} Used Space Pie Chart
+</button>
               
               
             </div>
             
-    
+            {showTotalSpacePieChart && (
+  <div>
+    {/* Render PieChart for Total Space */}
+    <PieChart
+      data={[diskData.total_space, diskData.used_space]}
+      colors={['#43A19E', '#FF9824']}
+      labels={true}
+      percent={true}
+      id="totalSpacePieChartContainer"
+      ref={(ref) => setTotalSpacePieChartRef(ref)}
+      itemNames={['Total Space', 'Used Space']}
+    />
+  </div>
+)}
+
+{showUsedSpacePieChart && (
+  <div>
+    {/* Render PieChart for Used Space */}
+    <PieChart
+      data={[diskData.used_space, diskData.total_space - diskData.used_space]}
+      colors={['#7B43A1', '#F2317A']}
+      labels={true}
+      percent={true}
+      id="usedSpacePieChartContainer"
+      ref={(ref) => setUsedSpacePieChartRef(ref)}
+      itemNames={['Used Space', 'Free Space']}
+    />
+  </div>
+)}
             
             
           </div>
