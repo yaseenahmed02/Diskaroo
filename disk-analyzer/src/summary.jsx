@@ -230,12 +230,7 @@ const [showUsedSpacePieChart, setShowUsedSpacePieChart] = useState(false);
             <p>Free Space: {bytesToGB(diskData.free_space)}</p>
             <p>Percentage Used: {diskData.percentage_used.toFixed(2)}%</p>
             <div className="actions flex space-x-2 mt-4">
-            <button
-  onClick={() => setShowTotalSpacePieChart(!showTotalSpacePieChart)}
-  className="action-button bg-blue-500 text-white px-4 py-2 rounded"
->
-  {showTotalSpacePieChart ? "Hide" : "Show"} Total Space Pie Chart
-</button>
+            
 
 <button
   onClick={() => setShowUsedSpacePieChart(!showUsedSpacePieChart)}
