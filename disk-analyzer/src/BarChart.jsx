@@ -1,39 +1,15 @@
 import React from 'react';
 import CanvasJSReact from '@canvasjs/react-charts';
 
-const CanvasJS = CanvasJSReact.CanvasJS; 
+const CanvasJS = CanvasJSReact.CanvasJS;
 const CanvasJSChart = CanvasJSReact.CanvasJSChart;
 
-function BarChart() {
-  const chartData = [
-    { y: 22, label: "Desktop" },
-    { y: 18, label: "Downloads" },
-    { y: 8, label: "Photos" },
-    { y: 5.63, label: "Documents" },
-    { y: 3.76, label: "Applications" }
-  ];
-
-  const handleExport = async () => {
-    try {
-      const path = await dialog.open({ directory: true });
-      if (path) {
-        console.log("Export Directory chosen:", path);
-        exportBarGraph(path);
-      } else {
-        console.error("No export directory selected.");
-      }
-    } catch (error) {
-      console.error("Error selecting export directory:", error);
-    }
-  };
-  
-
-
+function BarChart({ chartData, title }) {
   const options = {
     animationEnabled: true,
     theme: "light2",
     title: {
-      text: "Biggest Files On system",
+      text: title || "Bar Chart Title", // Use the provided title or a default value
     },
     axisX: {
       title: "Name",
@@ -47,7 +23,7 @@ function BarChart() {
     data: [
       {
         type: "bar",
-        dataPoints: chartData,
+        dataPoints: chartData || [], // Use the provided chart data or an empty array
       },
     ],
   };
