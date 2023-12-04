@@ -133,7 +133,7 @@ fn analyze_disk() -> Result<String, String> {
 
     let disks = system.disks();
     let disk = disks.get(0).ok_or_else(|| "No disks found!".to_string())?;
-
+    
     let data = DiskData {
         total_space: disk.total_space(),
         used_space: disk.total_space() - disk.available_space(),
@@ -204,6 +204,7 @@ fn traverse_directory(dir_path: &str) -> DirectoryNode {
 #[tauri::command]
 fn get_directory_data(dir_path: String) -> Result<String, String> {
     println!("get_directory_data() was called!");
+   
     let directory_tree = traverse_directory(&dir_path);
     let json_data = serde_json::to_string(&directory_tree).map_err(|e| e.to_string())?;
     Ok(json_data)
