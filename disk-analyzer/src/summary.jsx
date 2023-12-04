@@ -232,36 +232,12 @@ function Summary() {
               >
                 Clear
               </button>
-              <button
-                onClick={() => setShowBarGraph(!showBarGraph)}
-                className="action-button bg-green-500 text-white px-4 py-2 rounded"
-              >
-                {showBarGraph ? "Hide" : "Show"} Bar Graph
-              </button>
-              <button
-                onClick={() => setShowPieChart(!showPieChart)}
-                className="action-button bg-blue-500 text-white px-4 py-2 rounded"
-              >
-                {showPieChart ? "Hide" : "Show"} Pie Chart
-              </button>
+              
+              
             </div>
-            {showBarGraph && <BarChart />}
+            
     
-            {showPieChart && (
-        <div>
-          <PieChart
-            data={diskData}
-            id="pieChartContainer"
-            ref={(ref) => setPieChartRef(ref)}
-          />
-          <button
-            onClick={handleExportPieChart}
-            className="action-button bg-yellow-500 text-white px-4 py-2 rounded"
-          >
-            Export Pie Chart
-          </button>
-        </div>
-      )}
+            
             
           </div>
         )}
@@ -285,6 +261,7 @@ function Summary() {
                 </li>
               ))}
             </ul>
+            
             <h3>Largest File:</h3>
             <p>
               Path: {dirData.largest_file.path}
@@ -303,6 +280,38 @@ function Summary() {
               Last Modified:{" "}
               {new Date(dirData.smallest_file.last_modified).toLocaleString()}
             </p>
+            <button
+                onClick={() => setShowPieChart(!showPieChart)}
+                className="action-button bg-blue-500 text-white px-4 py-2 rounded"
+              >
+                {showPieChart ? "Hide" : "Show"} Pie Chart
+              </button>
+              <button
+                onClick={() => setShowBarGraph(!showBarGraph)}
+                className="action-button bg-green-500 text-white px-4 py-2 rounded"
+              >
+                {showBarGraph ? "Hide" : "Show"} Bar Graph
+              </button>
+            {showPieChart && (
+              <div>
+  <PieChart
+    data={dirData.largest_files.map((file) => file.size)}
+    colors={['#43A19E', '#7B43A1', '#F2317A', '#FF9824', '#58CF6C']}
+    labels={true}
+    percent={true}
+    id="pieChartContainer"
+    ref={(ref) => setPieChartRef(ref)}
+    itemNames={dirData.largest_files.map((file) => file.path.split('/').pop())}
+  />
+</div>
+
+)}
+{showBarGraph && (
+              <BarChart
+                chartData={dirData.largest_files.map((file) => ({ y: file.size, label: file.path.split('/').pop() }))}
+                title="Biggest Files On System"
+              />
+            )}
           </div>
         )}
         {/* Directory Tree Component */}

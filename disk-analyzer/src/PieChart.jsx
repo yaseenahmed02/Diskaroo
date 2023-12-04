@@ -1,9 +1,7 @@
 import React from 'react';
 import { dialog } from '@tauri-apps/api';
 
-function LegendItem({ color, label }) {
-  const itemNames = ["etc", "users", "program files", "disk 1", "disk 2"]; // Define your item names here
-
+function LegendItem({ color, label, itemNames }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', marginBottom: '5px' }}>
       <div
@@ -19,15 +17,10 @@ function LegendItem({ color, label }) {
   );
 }
 
-function PieChart() {
+function PieChart( {data, colors, labels, percent, itemNames }) {
   const radius = 150;
-  const colors = ['#43A19E', '#7B43A1', '#F2317A', '#FF9824', '#58CF6C'];
-  const labels = true;
-  const percent = true;
   const strokeWidth = 3;
   const stroke = '#fff';
-
-  const data = [5, 12, 8, 3, 10];
 
   const getAnglePoint = (startAngle, endAngle) => {
     const x = radius;
@@ -43,54 +36,6 @@ function PieChart() {
 
   const sum = data.reduce((carry, current) => carry + current, 0);
   let startAngle = 0;
-
-  const handleExport = async () => {
-    try {
-      const path = await dialog.open({ directory: true });
-      if (path) {
-        console.log("Export Directory chosen:", path);
-        exportAllContent(path);
-      } else {
-        console.error("No export directory selected.");
-      }
-    } catch (error) {
-      console.error("Error selecting export directory:", error);
-    }
-  };
-
-  const exportAllContent = async (exportDir) => {
-    console.log("Exporting All Content to:", exportDir);
-
-    const svgElement = document.querySelector('#pieChart');
-    const legendElement = document.querySelector('#legend');
-
-    const svgString = new XMLSerializer().serializeToString(svgElement);
-    const legendString = new XMLSerializer().serializeToString(legendElement);
-
-    const htmlContent = `
-      <html>
-        <head>
-          <title>Pie Chart and Legend Export</title>
-        </head>
-        <body>
-          <div>
-            ${svgString}
-          </div>
-          <div id="legend">
-            ${legendString}
-          </div>
-        </body>
-      </html>
-    `;
-
-    try {
-      const filePath = `${exportDir}/exported_content.html`;
-      await tauri.fs.writeFile({ file: filePath, contents: htmlContent });
-      console.log("Exported successfully. File saved at:", filePath);
-    } catch (error) {
-      console.error("Error exporting content:", error);
-    }
-  };
 
 
   return (
@@ -130,11 +75,10 @@ function PieChart() {
         })}
       </svg>
 
-      <div style={{ marginTop: '20px' }} id="legend" >
-        
+      <div style={{ marginTop: '20px' }} id="legend">
         <h3>Legend:</h3>
         {colors.map((color, index) => (
-          <LegendItem key={index} color={color} label={index} /> /* Use index as the label */
+          <LegendItem key={index} color={color} label={index} itemNames={itemNames} />
         ))}
       </div>
      
