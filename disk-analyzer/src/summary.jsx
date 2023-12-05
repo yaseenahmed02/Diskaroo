@@ -17,9 +17,33 @@ const TreeNode = ({ node }) => {
   const toggleCollapse = () => {
     setCollapsed(!collapsed);
   };
-
+  
   const icon = node.type === 'folder' ? '📁' : '📄';
   const name = node.name.split('/').pop();
+
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if ((event.metaKey || event.ctrlKey) && event.shiftKey && event.key === "c") {
+        // Check if CMD+SHIFT+C keys are pressed to collapse
+        if (!collapsed) {
+          setCollapsed(true);
+        }
+      } else if ((event.metaKey || event.ctrlKey) && event.key === "u") {
+        // Check if CMD+U keys are pressed to uncollapse
+        if (collapsed) {
+          setCollapsed(false);
+        }
+      }
+    };
+
+    // Attach the event listener for keydown
+    window.addEventListener("keydown", handleKeyDown);
+
+    // Cleanup: Remove the event listener when component unmounts
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [collapsed]); 
 
   return (
     <div key={node.name}>
@@ -56,6 +80,43 @@ const [showUsedSpacePieChart, setShowUsedSpacePieChart] = useState(false);
   useEffect(() => {
     // Automatically trigger disk analysis on component mount
     setActiveTab("disk");
+    const handleKeyDown = (event) => {
+      // Check for CMD (Meta key for Mac) and corresponding key combinations
+      if ((event.metaKey || event.ctrlKey) && event.key === "d") {
+        // Perform directory analysis action (CMD+D)
+        setActiveTab("directory");
+        console.log("CMD+D pressed - Directory Analysis triggered");
+        // Call your directory analysis function here
+      } else if ((event.metaKey || event.ctrlKey) && event.key === "t") {
+        // Perform directory tree action (CMD+T)
+        setActiveTab("directoryTree");
+        console.log("CMD+T pressed - Directory Tree triggered");
+        // Call your directory tree function here
+      } else if ((event.metaKey || event.ctrlKey) && event.key === "a") {
+        // Perform disk analysis action (CMD+A)
+        setActiveTab("disk");
+        console.log("CMD+A pressed - Disk Analysis triggered");
+        // Call your disk analysis function here
+      }else if ((event.metaKey || event.ctrlKey) && event.key === "p") {
+        // Perform disk analysis action (CMD+A)
+        setShowPieChart(!showPieChart);
+        setShowUsedSpacePieChart(!showUsedSpacePieChart);
+        console.log("CMD+P pressed - Pie Chart triggered");
+        // Call your disk analysis function here
+      }else if ((event.metaKey || event.ctrlKey) && event.key === "b") {
+        setShowBarGraph(!showBarGraph);
+        console.log("CMD+B pressed - Bar chart triggered");
+        // Call your disk analysis function here
+      }
+    };
+
+    // Attach the event listener for keydown
+    window.addEventListener("keydown", handleKeyDown);
+
+    // Cleanup: Remove the event listener when component unmounts
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
   }, []);
 
 
