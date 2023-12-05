@@ -92,7 +92,7 @@ const [showUsedSpacePieChart, setShowUsedSpacePieChart] = useState(false);
         setActiveTab("directoryTree");
         console.log("CMD+T pressed - Directory Tree triggered");
         // Call your directory tree function here
-      } else if ((event.metaKey || event.ctrlKey) && event.key === "a") {
+      } else if ((event.metaKey || event.ctrlKey) && event.shiftKey && event.key === "a") {
         // Perform disk analysis action (CMD+A)
         setActiveTab("disk");
         console.log("CMD+A pressed - Disk Analysis triggered");
