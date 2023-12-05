@@ -167,9 +167,10 @@ struct DirectoryNode {
     #[serde(rename = "type")] // "type" is a reserved keyword in Rust, so renaming it
     node_type: String,
     children: Option<Vec<DirectoryNode>>,
+    path: Option<String>, // Change path type to Option<String> to include path for files
 }
 
-fn traverse_directory(dir_path: &str) -> DirectoryNode {
+fn traverse_directory(dir_path: &str, parent_path: Option<&str>) -> DirectoryNode {
     let mut node_children: Vec<DirectoryNode> = Vec::new();
 
     if let Ok(entries) = fs::read_dir(dir_path) {
@@ -181,14 +182,23 @@ fn traverse_directory(dir_path: &str) -> DirectoryNode {
                 let path = entry.path();
                 if path.is_dir() {
                     let path_str = path.to_string_lossy().to_string();
-                    let child_node = traverse_directory(&path_str);
+                    let child_node = traverse_directory(&path_str, Some(dir_path));
                     node_children.push(child_node);
                 } else {
-                    node_children.push(DirectoryNode {
+                    let mut file_node = DirectoryNode {
                         name: file_name_str,
                         node_type: "file".to_string(),
                         children: None,
-                    });
+                        path: None,
+                    };
+                    let test_path = path.display().to_string();
+                    if test_path.contains(dir_path) {
+                        file_node.path = Some(format!("{}", test_path));
+                    } else {
+                        file_node.path = Some(format!("{}/{}", dir_path,file_node.name));
+                    }
+                
+                    node_children.push(file_node);
                 }
             }
         }
@@ -198,6 +208,7 @@ fn traverse_directory(dir_path: &str) -> DirectoryNode {
         name: dir_path.to_string(),
         node_type: "folder".to_string(),
         children: Some(node_children),
+        path: None, // For folders, the path will remain None
     }
 }
 
@@ -205,9 +216,22 @@ fn traverse_directory(dir_path: &str) -> DirectoryNode {
 fn get_directory_data(dir_path: String) -> Result<String, String> {
     println!("get_directory_data() was called!");
    
-    let directory_tree = traverse_directory(&dir_path);
+    let directory_tree = traverse_directory(&dir_path, None);
     let json_data = serde_json::to_string(&directory_tree).map_err(|e| e.to_string())?;
     Ok(json_data)
+}
+
+
+
+#[tauri::command]
+fn delete_file(file: String) -> Result<(), String> {
+    // Attempt to remove the file
+    println!("delete_file was called for file");
+    
+    match std::fs::remove_file(&file) {
+        Ok(_) => Ok(()), // File successfully deleted
+        Err(err) => Err(err.to_string()), // Return error if deletion fails
+    }
 }
 
 fn main() {
@@ -223,7 +247,7 @@ fn main() {
     // }
 
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![analyze_directory, analyze_disk, get_directory_data]) // <-- NOTE: analyze_disk is removed as it's not provided in the code.
+        .invoke_handler(tauri::generate_handler![analyze_directory, analyze_disk, get_directory_data, delete_file]) // <-- NOTE: analyze_disk is removed as it's not provided in the code.
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
